@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>유나가 만든 탁구게임</title>
+    <link href="css/yunastyle.css" rel="stylesheet" />
+    <script src="lib/jquery-3.4.1.min.js" charset="utf-8"></script>
+</head>
+
+<body>
+    <div id="level">
+        <button id="easy" class="level">EASY</button>
+        <button id="normal" class="level">NORMAL</button>
+        <button id="hard" class="level">HARD</button>
+    </div>
+    <div id="field">
+        <div id="net"></div>
+        <div id="playerA" class="player"></div>
+        <div id="playerB" class="player"></div>
+        <div id="ball"></div>
+    </div>
+    <button id="start" class="btn">시작하기</button>
+    <button id="winner" class="btn"></button>
+    <br>
+    <div id="nameA" class="name"></div>
+    <div id="nameB" class="name"></div>
+    <div id="scoreA" class="score"></div>
+    <div id="scoreB" class="score"></div>
+
+    <script>
+        //==========================================================================================================
+        //전체 게임 관련----------------------------------------------------------------
+        var ping_pong;
+        var ballOut = false;
+        //효과음 관련(pong: 공 칠 때/dead: 공 놓쳤을 때)---------------------------------
+        var pong = new Audio();
+        pong.src="sound/pong.wav";
+        pong.volume=0.5;
+        pong.playbackRate=1.0;
+
+        var dead = new Audio();
+        dead.src="sound/dead.wav";
+        dead.volume=0.5;
+        dead.playbackRate=1.0;
+        //공 관련----------------------------------------------------------------------
+        var bLR = 'right';
+        var bUD = 'down';
+        var speed = 20;
+        var angle = 0;
+
+        var xA, wA, xwA, yA, hA, yhA, xB, wB, xwB, yB, hB, yhB;
+        //플레이어 관련-----------------------------------------------------------------
+        var movingdownA = false;
+        var movingupA = false;
+        var movingdownB = false;
+        var movingupB = false;
+
+        var name1, name2;
+        name_A = createName();
+        name_B = createName();
+        $("#nameA").text(name_A);
+        $("#nameB").text(name_B);
+        var aWinner;
+        //==========================================================================================================
+        //메인 게임 함수----------------------------------------------------------------------------------------
+        function pingpong() {
+            $("#ball").show();
+            if (!ballOut) {
+                // 플레이어와 공이 충돌했을 때
+                if (collide($("#ball"), $("#playerA"))) {
+                    pong.play();
+                    $("#scoreA").append("■");
+
+                    bLR = 'right';
+                    bUD = ((parseInt($("#ball").css('top')) + 20) > (parseInt($("#playerA").css('top')) + 50) ? 'down' : 'up');
+                    angle = Math.abs(((parseInt($("#playerA").css('top')) + 100) - (parseInt($("#ball").css('top')) + 20))) / 12;
+                }
+                if (collide($("#ball"), $("#playerB"))) {
+                    pong.play();
+                    $("#scoreB").append("■");
+
+                    bLR = 'left';
+                    bUD = ((parseInt($("#ball").css('top')) + 20) > (parseInt($("#playerB").css('top')) + 50) ? 'down' : 'up');
+                    angle = Math.abs(((parseInt($("#playerB").css('top')) + 100) - (parseInt($("#ball").css('top')) + 20))) / 12;
+                }
+                // 위/아래 벽에 공이 닿을 때 반대 방향으로 변경
+                if (parseInt($("#ball").css('top')) <= 0) {
+                    bUD = 'down';
+                } else if (parseInt($("#ball").css('bottom')) <= 0) {
+                    bUD = 'up';
+                // 공이 상대편 벽에 닿았을 떄
+                } else if (parseInt($("#ball").css('left')) <= 0) {
+                    aWinner = name_B;
+                    referee();
+                } else if (parseInt($("#ball").css('right')) <= 0) {
+                    aWinner = name_A;
+                    referee();
+                }
+                // 공 div 이동
+                if (bLR === 'right') {
+                    $("#ball").css('left', parseInt($("#ball").css('left')) + speed);
+                    if (bUD === 'up') {
+                        $("#ball").css('top', parseInt($("#ball").css('top')) - (angle));
+                    } else {
+                        $("#ball").css('top', parseInt($("#ball").css('top')) + (angle));
+                    }
+                }
+                if (bLR === 'left') {
+                    $("#ball").css('left', parseInt($("#ball").css('left')) - speed);
+                    if (bUD === 'up') {
+                        $("#ball").css('top', parseInt($("#ball").css('top')) - (angle));
+                    } else {
+                        $("#ball").css('top', parseInt($("#ball").css('top')) + (angle));
+                    }
+                }
+                ping_pong = requestAnimationFrame(pingpong);
+            }
+        }
+        ping_pong = requestAnimationFrame(pingpong);
+        //플레이어A div 이동------------------------------------------------------------------------------------
+        function upA() {
+            if (parseInt($("#playerA").css('top')) > 0) {
+                $("#playerA").css('top', parseInt($("#playerA").css('top')) - 20);
+                movingupA = requestAnimationFrame(upA);
+            }
+        }
+        function downA() {
+            if (parseInt($("#playerA").css('bottom')) > 0) {
+                $("#playerA").css('top', parseInt($("#playerA").css('top')) + 20);
+                movingdownA = requestAnimationFrame(downA);
+            }
+        }
+        //플레이어B div 이동------------------------------------------------------------------------------------
+        function upB() {
+            if (parseInt($("#playerB").css('top')) > 0) {
+                $("#playerB").css('top', parseInt($("#playerB").css('top')) - 20);
+                movingupB = requestAnimationFrame(upB);
+            }
+        }
+        function downB() {
+            if (parseInt($("#playerB").css('bottom')) > 0) {
+                $("#playerB").css('top', parseInt($("#playerB").css('top')) + 20);
+                movingdownB = requestAnimationFrame(downB);
+            }
+        }
+        //승리자 판정 함수--------------------------------------------------------------------------------
+        function referee() {
+                cancelAnimationFrame(ping_pong);
+                cancelAnimationFrame(movingdownB);
+                cancelAnimationFrame(movingupB);
+                cancelAnimationFrame(movingdownA);
+                cancelAnimationFrame(movingupA);
+                ballOut = true;
+                dead.play();
+                if ($("#scoreA").text() == $("#scoreB").text()) {
+                    $("#winner").text("무승부!").slideDown();
+                }else {
+                    $("#winner").text(aWinner + " 승리!").slideDown();
+                }
+        }
+        // 공-플레이어 간의 충돌 확인 함수----------------------------------------------------------------------
+        function collide(divA, divB) {
+            xA = parseInt(divA.css('left'));
+            wA = divA.width();
+            xwA = xA + wA;
+            yA = parseInt(divA.css('top'));
+            hA = divA.height();
+            yhA = yA + hA;
+                        
+            xB = parseInt(divB.css('left'));
+            wB = divB.width();
+            xwB = xB + wB;
+            yB = parseInt(divB.css('top'));
+            
+            hB = divB.height();
+            yhB = yB + hB;
+            
+            if (xA > xwB || yA > yhB || yhA < yB || xwA < xB) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+        // 플레이어 이름 랜덤 생성 함수-------------------------------------------------------------------------
+        function createName() {
+            name1 = ["귀여운 ","즐거운 ","성실한 ", "심심한 ","배고픈 ","파란 ","빨간 ","촉촉한 ","칙칙한 ","피곤한 ","배부른 ","따뜻한 ","똑똑한 "];
+            name2 = ["감자","펭귄","단팥빵","이쑤시개","따개비","마이크","케이크","수건","호랑이","꽁치","고양이","너구리","강아지","교수님","옥수수","산타"];
+            
+            return name1[Math.floor(Math.random()*name1.length)] + name2[Math.floor(Math.random()*name2.length)];
+        }
+        //=========================================================================================================
+        //문서가 준비되면 실행할 내용들-------------------------------------------------------------------------
+        $(document).ready(function() {
+            cancelAnimationFrame(ping_pong);
+            $("#ball").hide();
+            //------------------------------------------------------------------------------------------------
+            $(document).on('click', '#winner', function () {
+                location.reload();
+            });
+            $(document).on('click', '#start', function () {
+                $("#start").css('display', 'none');
+                pingpong();
+            });
+            $(document).on('click', '#easy', function () {
+                $(this).blur();
+                $("#easy").css('background-color', '#f0f0f0');
+                $("#normal").css('background-color', 'white')
+                $("#hard").css('background-color', 'white');
+                speed = 10;
+            });
+            $(document).on('click', '#normal', function () {
+                $(this).blur();
+                $("#easy").css('background-color', 'white');
+                $("#normal").css('background-color', '#f0f0f0')
+                $("#hard").css('background-color', 'white');
+                speed = 20;
+            });
+            $(document).on('click', '#hard', function () {
+                $(this).blur();
+                $("#easy").css('background-color', 'white');
+                $("#normal").css('background-color', 'white')
+                $("#hard").css('background-color', '#f0f0f0');
+                speed = 30;
+            });
+            //------------------------------------------------------------------------------------------------
+            $(document).on('keydown', function (event) {
+                if (event.keyCode === 87 && movingupA === false && ballOut === false) {
+                    movingupA = requestAnimationFrame(upA);
+                } else if (event.keyCode === 83 && movingdownA === false && ballOut === false) {
+                    movingdownA = requestAnimationFrame(downA);
+                } else if (event.keyCode === 38 && movingupB === false && ballOut === false) {
+                    movingupB = requestAnimationFrame(upB);
+                } else if (event.keyCode === 40 && movingdownB === false && ballOut === false) {
+                    movingdownB = requestAnimationFrame(downB);
+                }
+                return !(event.keyCode == 32);
+            });
+            $(document).on('keyup', function (event) {
+                if (event.keyCode === 87 && ballOut === false) {
+                    cancelAnimationFrame(movingupA);
+                    movingupA = false;
+                } else if (event.keyCode === 83 && ballOut === false) {
+                    cancelAnimationFrame(movingdownA);
+                    movingdownA = false;
+                } else if (event.keyCode === 38 && ballOut === false) {
+                    cancelAnimationFrame(movingupB);
+                    movingupB = false;
+                } else if (event.keyCode === 40 && ballOut === false) {
+                    cancelAnimationFrame(movingdownB);
+                    movingdownB = false;
+                }
+            });
+            //------------------------------------------------------------------------------------------------
+        });
+        //=========================================================================================================
+    </script>
+</body>
+</html>

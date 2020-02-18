@@ -1,0 +1,102 @@
+#level {
+    width: 30%;
+    margin-left: 20%; 
+}
+
+.level {
+    width: 100px;
+    height: 30px;
+    font-weight: bold;
+    border: none;
+    background-color: white;
+}
+
+#normal {
+    background-color: #f0f0f0;
+}
+
+#field {
+    position: relative;
+    width: 60%;
+    margin-left: 20%;
+    margin-right: 20%;
+    height: 600px;
+    background-color: #8888FF;
+    border: 5px solid #f0f0f0;
+}
+
+#net {
+    position: relative;
+    float: left;
+    width: 50%;
+    height: 100%;
+    border-right: 5px dashed #f0f0f0;
+    background-color: #8888FF;
+}
+
+#ball {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 300px;
+    left: 550px;
+    background: #FFAA00;
+    border-radius: 50%
+}
+
+.player {
+    position: absolute;
+    width: 20px;
+    height: 100px;
+    top: 40%;
+    
+}
+
+#playerA {
+    left: 20px;
+    background-color: #FF5555;
+}
+
+#playerB {
+    right: 20px;
+    background-color: #55FF55;
+}
+
+.name, .score {
+    width: 50%;
+    height: 50%;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+#nameA, #scoreA {
+    float: left;
+    text-align: right;
+    color: #FF5555;
+}
+
+#nameB, #scoreB {
+    float: right;
+    text-align: left;
+    color: #55FF55;
+}
+
+.btn {
+    position: absolute;
+    top: 40px;
+    width: 60%;
+    height: 620px;
+    margin-left: 20%;
+    margin-right: 20%;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.5);
+    color: #8888FF;
+    font-size: 100px;
+    border: none;
+    font-weight: bold;
+}
+
+#winner {
+    display: none;
+}
+
